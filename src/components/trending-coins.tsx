@@ -16,7 +16,8 @@ export function TrendingCoins({ data }: TrendingCoinsProps) {
       </h2>
       <div className="space-y-5">
         {data.slice(0, 3).map((coin) => {
-          const isPositive = coin.item.data?.price_change_percentage_24h?.usd ?? 0 > 0
+          const priceChange = coin.item.data?.price_change_percentage_24h?.usd;
+          const isPositive = priceChange !== undefined ? priceChange > 0 : false;
 
           return (
             <div key={coin.item.id} className="flex items-center justify-between">
@@ -41,7 +42,7 @@ export function TrendingCoins({ data }: TrendingCoinsProps) {
                   <ArrowDown className="h-4 w-4" />
                 )}
                 <span className="text-sm font-medium">
-                  {Math.abs(coin.item.data?.price_change_percentage_24h?.usd ?? 0).toFixed(2)}%
+                  {priceChange !== undefined ? Math.abs(priceChange).toFixed(2) : '0.00'}%
                 </span>
               </div>
             </div>

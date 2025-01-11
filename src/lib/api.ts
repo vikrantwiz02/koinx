@@ -1,4 +1,4 @@
-import type { BitcoinPriceData, MarketChartData, BitcoinDetails, CoinMetadata, PriceData, CoinData } from '@/types/api';
+import type { BitcoinPriceData, MarketChartData, BitcoinDetails, CoinMetadata, PriceData, CoinData, TrendingCoinsResponse, BitcoinPriceResponse } from '@/types/api';
 
 export async function getBitcoinDetails(): Promise<BitcoinDetails> {
   try {
@@ -15,20 +15,24 @@ export async function getBitcoinDetails(): Promise<BitcoinDetails> {
       { next: { revalidate: 3600 } }
     );
 
-    if (!marketResponse.ok) throw new Error('Failed to fetch market data');
-    const marketData = await marketResponse.json() as MarketChartData;
+    let marketData: MarketChartData = { prices: [] };
+    if (marketResponse.ok) {
+      marketData = await marketResponse.json() as MarketChartData;
+    } else {
+      console.error('Failed to fetch market data');
+    }
 
-    const prices = marketData.prices.map((p: [number, number]) => p[1]);
-    const low52w = Math.min(...prices);
-    const high52w = Math.max(...prices);
+    const prices = marketData.prices.map((p) => p[1]);
+    const low52w = prices.length > 0 ? Math.min(...prices) : 0;
+    const high52w = prices.length > 0 ? Math.max(...prices) : 0;
 
     const bitcoin = priceData.bitcoin || {};
     return {
       current_price: bitcoin.usd || 0,
       low_24h: bitcoin.usd_24h_low || bitcoin.usd || 0,
       high_24h: bitcoin.usd_24h_high || bitcoin.usd || 0,
-      low_52w: low52w || 0,
-      high_52w: high52w || 0,
+      low_52w: low52w,
+      high_52w: high52w,
       price_change_24h: bitcoin.usd_24h_change || 0,
       market_cap: bitcoin.usd_market_cap || 0,
       market_cap_rank: 1,
@@ -60,7 +64,7 @@ export async function getBitcoinDetails(): Promise<BitcoinDetails> {
   }
 }
 
-export async function getBitcoinPrice() {
+export async function getBitcoinPrice(): Promise<BitcoinPriceResponse> {
   try {
     const response = await fetch(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=inr,usd&include_24hr_change=true',
@@ -71,21 +75,29 @@ export async function getBitcoinPrice() {
       throw new Error('Failed to fetch Bitcoin price');
     }
 
-    return response.json();
+    const data: BitcoinPriceData = await response.json();
+    
+    // Ensure we always return the expected shape
+    return {
+      bitcoin: {
+        usd: data.bitcoin.usd,
+        inr: data.bitcoin.inr,
+        usd_24h_change: data.bitcoin.usd_24h_change ?? 0, // Use 0 if undefined
+      }
+    };
   } catch (error) {
     console.error('Error fetching Bitcoin price:', error);
     return { 
       bitcoin: { 
         usd: 47000, 
         inr: 3500000, 
-        usd_24h_change: 2.5, 
-        inr_24h_change: 2.5 
+        usd_24h_change: 0
       } 
     };
   }
 }
 
-export async function getTrendingCoins() {
+export async function getTrendingCoins(): Promise<TrendingCoinsResponse['coins']> {
   try {
     const response = await fetch(
       'https://api.coingecko.com/api/v3/search/trending',
@@ -96,15 +108,8 @@ export async function getTrendingCoins() {
       throw new Error('Failed to fetch trending coins');
     }
 
-    const data = await response.json();
-    return data.coins.map((coin: { item: { id: string; name: string; symbol: string; thumb: string; price_btc: number; data?: { price_change_percentage_24h?: { usd: number } } } }) => ({
-      id: coin.item.id,
-      name: coin.item.name,
-      symbol: coin.item.symbol,
-      logo: coin.item.thumb,
-      price: coin.item.price_btc,
-      price_change_24h: coin.item.data?.price_change_percentage_24h?.usd || 0
-    }));
+    const data = await response.json() as TrendingCoinsResponse;
+    return data.coins;
   } catch (error) {
     console.error('Error fetching trending coins:', error);
     return [];
@@ -143,7 +148,7 @@ export async function getYouMayLike(): Promise<CoinData[]> {
         logo: metadata?.image || '',
         price: priceData[id]?.usd || 0,
         price_change_24h: Number(priceData[id]?.usd_24h_change?.toFixed(2)) || 0,
-        sparkline: marketChart?.prices?.map((price: [number, number]) => price[1]) || null,
+        sparkline: marketChart?.prices?.map((price) => price[1]) || null,
         last_updated: priceData[id]?.last_updated_at || Date.now()
       };
     });
@@ -185,7 +190,7 @@ export async function getTrendingCoinsDetailed(): Promise<CoinData[]> {
         logo: metadata?.image || '',
         price: priceData[id]?.usd || 0,
         price_change_24h: Number(priceData[id]?.usd_24h_change?.toFixed(2)) || 0,
-        sparkline: marketChart?.prices?.map((price: [number, number]) => price[1]) || null,
+        sparkline: marketChart?.prices?.map((price) => price[1]) || null,
         last_updated: priceData[id]?.last_updated_at || Date.now()
       };
     });

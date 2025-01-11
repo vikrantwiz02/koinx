@@ -73,10 +73,9 @@ export interface TrendingCoinsResponse {
       name: string;
       symbol: string;
       thumb: string;
-      price_btc: number;
       data?: {
         price_change_percentage_24h?: {
-          usd: number;
+          usd?: number;
         };
       };
     };
