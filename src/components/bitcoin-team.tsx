@@ -11,20 +11,23 @@ function TeamMember({ name, designation, description, imageSrc }: TeamMemberProp
   return (
     <div className="bg-[#E8F4FD] rounded-lg p-6 mb-5">
       <div className="flex flex-col sm:flex-row gap-6">
-        <div className="flex flex-col w-[100px] shrink-0">
-          <Image
-            src={imageSrc}
-            alt={name}
-            width={100}
-            height={100}
-            className="rounded-lg object-cover w-[100px] h-[100px] mb-2"
-          />
-          <div className="flex flex-col items-center text-center">
+        <div className="flex flex-col items-center sm:items-start shrink-0">
+          <div className="w-[120px] h-[120px] sm:w-[100px] sm:h-[100px] mb-2 relative">
+            <Image
+              src={imageSrc}
+              alt={name}
+              fill
+              className="rounded-full object-cover"
+            />
+          </div>
+          <div className="text-center sm:text-left mb-4 sm:mb-0">
             <h4 className="text-[16px] font-semibold text-[#0F1629] mb-1">{name}</h4>
-            <p className="text-[14px] text-[#788F9B] whitespace-nowrap">{designation}</p>
+            <p className="text-[14px] text-[#788F9B]">{designation}</p>
           </div>
         </div>
-        <p className="text-[14px] leading-[160%] text-[#0F1629] flex-1">{description}</p>
+        <p className="text-[14px] leading-[160%] text-[#0F1629] flex-1 text-center sm:text-left">
+          {description}
+        </p>
       </div>
     </div>
   )

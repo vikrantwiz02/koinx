@@ -13,8 +13,6 @@ import { BitcoinTeam } from '@/components/bitcoin-team'
 import { YouMayLike } from '@/components/you-may-like'
 import { getBitcoinPrice, getTrendingCoins, getTrendingCoinsDetailed, getYouMayLike } from '@/lib/api'
 
-export const revalidate = 0;
-
 export default async function Home() {
   const [bitcoinPrice, trendingCoins, trendingCoinsDetailed, youMayLike] = await Promise.all([
     getBitcoinPrice(),
@@ -59,15 +57,27 @@ export default async function Home() {
               <BitcoinTeam />
             </div>
             
-            <div className="lg:col-span-1 space-y-5">
+            <div className="hidden lg:flex lg:col-span-1 space-y-5 flex-col">
               <GetStarted />
               <TrendingCoins data={trendingCoins} />
             </div>
           </div>
         </div>
+
+        <div className="lg:hidden space-y-5 mt-5">
+          <YouMayLike youMayLike={youMayLike} trendingCoins={trendingCoinsDetailed} />
+          <div className="px-4">
+            <GetStarted />
+            <div className="mt-5">
+              <TrendingCoins data={trendingCoins} />
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden lg:block">
+          <YouMayLike youMayLike={youMayLike} trendingCoins={trendingCoinsDetailed} />
+        </div>
       </div>
-      
-      <YouMayLike youMayLike={youMayLike} trendingCoins={trendingCoinsDetailed} />
     </main>
   )
 }
