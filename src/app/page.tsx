@@ -13,6 +13,8 @@ import { BitcoinTeam } from '@/components/bitcoin-team'
 import { YouMayLike } from '@/components/you-may-like'
 import { getBitcoinPrice, getTrendingCoins, getTrendingCoinsDetailed, getYouMayLike } from '@/lib/api'
 
+export const revalidate = 0;
+
 export default async function Home() {
   const [bitcoinPrice, trendingCoins, trendingCoinsDetailed, youMayLike] = await Promise.all([
     getBitcoinPrice(),
